@@ -1,5 +1,4 @@
 const fs = require('fs');
-const inlineCriticalCss = require('inline-critical');
 const reaver = require('reaver');
 
 function throwIfError(err) {
@@ -18,38 +17,79 @@ function replaceInBuffer(buf, a, b) {
 	return Buffer.concat([before, b, after], len);
 }
 
-fs.readFile('./src/template.html', (err, templateHtml) => {
-	throwIfError(err);
+// 检查 critical.css 是否存在
+const criticalCssExists = fs.existsSync('./dist/critical.css');
+const bundleCssExists = fs.existsSync('./dist/bundle.css');
 
-	fs.readFile('./dist/critical.css', (err, criticalCss) => {
+if (criticalCssExists) {
+	// 如果存在 critical.css，进行内联处理
+	const inlineCriticalCss = require('inline-critical');
+
+	fs.readFile('./src/template.html', (err, templateHtml) => {
 		throwIfError(err);
 
-		// Inline the CSS into the template HTML and return resulting HTML (does some file system operations)
-		const inlinedHtml = inlineCriticalCss(templateHtml, criticalCss, {
-			basePath: 'dist',
-			extract:  true,
-			noscript: 'head',
-		});
-
-		// Remove redundant css
-		fs.unlink('./dist/critical.css', throwIfError);
-		fs.unlink('./dist/bundle.css', throwIfError);
-
-		// Read bundle.js
-		fs.readFile('./dist/bundle.js', (err, bundleJs) => {
+		fs.readFile('./dist/critical.css', (err, criticalCss) => {
 			throwIfError(err);
 
-			// Calculate file hash and get filename using the hash
-			const hashedBundleName = reaver.rev('bundle.js', bundleJs);
+			// Inline the CSS into the template HTML
+			const inlinedHtml = inlineCriticalCss(templateHtml, criticalCss, {
+				basePath: 'dist',
+				extract:  true,
+				noscript: 'head',
+			});
+
+			// Remove redundant css
+			fs.unlink('./dist/critical.css', throwIfError);
+			if (bundleCssExists) {
+				fs.unlink('./dist/bundle.css', throwIfError);
+			}
+
+			// Read bundle.js
+			fs.readFile('./dist/bundle.js', (err, bundleJs) => {
+				throwIfError(err);
+
+				// Calculate file hash and get filename
+				const hashedBundleName = reaver.rev('bundle.js', bundleJs);
+
+				// Replace bundle.js filename in HTML
+				const outputHtml = replaceInBuffer(inlinedHtml, 'bundle.js', hashedBundleName);
+
+				// Write final HTML
+				fs.writeFile('./dist/index.html', outputHtml, throwIfError);
+
+				// Rename bundle.js
+				fs.rename('./dist/bundle.js', './dist/' + hashedBundleName, throwIfError);
+			});
+		});
+	});
+} else {
+	// 如果不存在 critical.css，只处理 bundle.js
+	console.log('No critical.css found, skipping CSS inlining...');
+
+	// Read bundle.js
+	fs.readFile('./dist/bundle.js', (err, bundleJs) => {
+		throwIfError(err);
+
+		// Calculate file hash
+		const hashedBundleName = reaver.rev('bundle.js', bundleJs);
+
+		// Read template
+		fs.readFile('./src/template.html', (err, templateHtml) => {
+			throwIfError(err);
 
 			// Replace bundle.js filename in HTML
-			const outputHtml = replaceInBuffer(inlinedHtml, 'bundle.js', hashedBundleName);
+			const outputHtml = replaceInBuffer(templateHtml, 'bundle.js', hashedBundleName);
 
-			// Write final HTML into index.html
+			// Write final HTML
 			fs.writeFile('./dist/index.html', outputHtml, throwIfError);
 
 			// Rename bundle.js
 			fs.rename('./dist/bundle.js', './dist/' + hashedBundleName, throwIfError);
+
+			// Keep bundle.css - it contains Svelte component styles
+			// Don't delete it
+
+			console.log('Build completed successfully!');
 		});
 	});
-});
+}
