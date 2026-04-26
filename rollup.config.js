@@ -1,6 +1,7 @@
 import commonjs from '@rollup/plugin-commonjs';
 import resolve from '@rollup/plugin-node-resolve';
 import { writeFileSync } from 'fs';
+import path from 'path';
 import copy from 'rollup-plugin-copy';
 import css from 'rollup-plugin-css-only';
 import livereload from 'rollup-plugin-livereload';
@@ -12,17 +13,7 @@ const mode = process.env.NODE_ENV;
 const production = mode === 'production';
 
 const preprocess = sveltePreprocess({
-	postcss:  {
-		plugins: [
-			require('postcss-import'),
-			require('tailwindcss'),
-			require('autoprefixer'),
-			...(production ? [require('postcss-clean')] : []),
-		],
-	},
-	defaults: {
-		style: 'postcss',
-	},
+	// 禁用 postcss，@apply 在 Tailwind CLI 构建的 CSS 中处理
 });
 
 export default {
@@ -46,8 +37,6 @@ export default {
 				// enable run-time checks when not in production
 				dev: !production,
 			},
-
-			// preprocess svelte files
 			preprocess,
 		}),
 
@@ -63,15 +52,18 @@ export default {
 			},
 		}),
 
-		// If you have external dependencies installed from
-		// npm, you'll most likely need these plugins. In
-		// some cases you'll need additional configuration -
-		// consult the documentation for details:
-		// https://github.com/rollup/plugins/tree/master/packages/commonjs
+		// 解析模块别名
 		resolve({
 			browser: true,
 			dedupe:  ['svelte'],
+			alias: [
+				{ find: '@sudoku/stores/gameStore.js', replacement: path.resolve(__dirname, 'src/stores/gameStore.js') },
+				{ find: '@sudoku/stores', replacement: path.resolve(__dirname, 'src/node_modules/@sudoku/stores') },
+				{ find: '@sudoku/domain', replacement: path.resolve(__dirname, 'src/domain') },
+				{ find: '@sudoku', replacement: path.resolve(__dirname, 'src/node_modules/@sudoku') },
+			],
 		}),
+
 		commonjs(),
 
 		// In dev mode, call `npm run start` once
