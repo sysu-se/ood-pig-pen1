@@ -1,12 +1,15 @@
 <script>
 	import { timer } from '@sudoku/stores/timer';
-	import { pauseGame, resumeGame } from '@sudoku/game';
-	import { gamePaused } from '@sudoku/stores/game';
+	import { gamePaused } from '@sudoku/stores/gamePaused';
 	import { settings } from '@sudoku/stores/settings';
+
+	function togglePause() {
+		gamePaused.update(paused => !paused);
+	}
 </script>
 
 <div class="timer-container">
-	<button class="btn btn-round" on:click={() => $gamePaused ? resumeGame() : pauseGame()} title="{$gamePaused ? 'Resume Game' : 'Pause Game'}">
+	<button class="btn btn-round" on:click={togglePause} title="{$gamePaused ? 'Resume Game' : 'Pause Game'}">
 		<svg class="icon-outline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 			{#if $gamePaused}
 				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.19 9.61L9.01 3.48A2.87 2.87 0 004.54 5.88v12.25a2.87 2.87 0 004.47 2.39l9.18-6.12a2.87 2.87 0 000-4.78v0z" />
@@ -23,10 +26,16 @@
 
 <style>
 	.timer-container {
-		@apply flex items-center bg-gray-300 rounded-full self-start;
+		display: flex;
+		align-items: center;
+		background-color: #d1d5db;
+		border-radius: 9999px;
+		align-self: flex-start;
 	}
 
 	.timer-text {
-		@apply px-4 text-2xl;
+		padding-left: 1rem;
+		padding-right: 1rem;
+		font-size: 1.5rem;
 	}
 </style>

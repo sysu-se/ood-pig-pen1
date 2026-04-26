@@ -16,10 +16,17 @@
 
 <style>
 	.candidate-grid {
-		@apply grid h-full w-full p-1;
+		display: grid;
+		height: 100%;
+		width: 100%;
+		padding: 0.25rem;
 	}
 
 	.candidate {
-		@apply h-full w-full row-end-auto col-end-auto leading-full;
+		height: 100%;
+		width: 100%;
+		grid-row-end: auto;
+		grid-column-end: auto;
+		line-height: 100%;
 	}
 </style>

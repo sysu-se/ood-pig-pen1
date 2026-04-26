@@ -11,12 +11,16 @@
 
 <style>
 	.action-bar {
-		@apply flex flex-col flex-wrap justify-between pb-5;
+		display: flex;
+		flex-direction: column;
+		flex-wrap: wrap;
+		justify-content: space-between;
+		padding-bottom: 1.25rem;
 	}
 
-	@screen xs {
+	@media (min-width: 300px) {
 		.action-bar {
-			@apply flex-row;
+			flex-direction: row;
 		}
 	}
 </style>

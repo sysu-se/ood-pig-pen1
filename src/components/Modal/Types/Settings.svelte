@@ -4,7 +4,6 @@
 	import { settings as settingsStore } from '@sudoku/stores/settings';
 	import { MAX_HINTS } from '@sudoku/constants';
 
-	export let data = {};
 	export let hideModal;
 
 	let settings = { ...$settingsStore };
@@ -59,10 +58,20 @@
 
 <style>
 	.number-input {
-		@apply w-12 h-8 px-1 border-2 rounded-lg shadow-inner text-xl text-center leading-none;
+		width: 3rem;
+		height: 2rem;
+		padding-left: 0.25rem;
+		padding-right: 0.25rem;
+		border: 2px solid #d1d5db;
+		border-radius: 0.5rem;
+		box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+		font-size: 1.25rem;
+		text-align: center;
+		line-height: 1;
 	}
 
 	.number-input:focus {
-		@apply outline-none shadow-outline;
+		outline: none;
+		box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.5);
 	}
 </style>

@@ -2,19 +2,19 @@
 	import { onMount } from 'svelte';
 	import { BASE_URL } from '@sudoku/constants';
 	import { modal } from '@sudoku/stores/modal';
-	import { grid } from '@sudoku/stores/grid';
+	import { gameStore } from '@sudoku/stores/gameStore.js';
+	import { encodeSudoku } from '@sudoku/sencode';
 	import Clipboard from '../../Utils/Clipboard.svelte';
 
 	export let data = {};
 	export let hideModal;
 
-	const sencode = grid.getSencode($grid);
-
-	const link = BASE_URL + '#' + sencode;
-	const encodedLink = encodeURIComponent(link);
-	const facebookLink = 'https://www.facebook.com/sharer/sharer.php?u=' + encodedLink;
-	const twitterLink = 'https://twitter.com/intent/tweet?text=Check%20out%20this%20Sudoku%20puzzle!&url=' + encodedLink;
-	const mailToLink = 'mailto:?subject=A%20Sudoku%20puzzle%20for%20you&body=Here%27s%20a%20link%20to%20a%20Sudoku%20puzzle%20on%20sudoku.jonasgeiler.com%3A%0A%0A' + encodedLink;
+	$: sencode = encodeSudoku($gameStore.grid);
+	$: link = BASE_URL + '#' + sencode;
+	$: encodedLink = encodeURIComponent(link);
+	$: facebookLink = 'https://www.facebook.com/sharer/sharer.php?u=' + encodedLink;
+	$: twitterLink = 'https://twitter.com/intent/tweet?text=Check%20out%20this%20Sudoku%20puzzle!&url=' + encodedLink;
+	$: mailToLink = 'mailto:?subject=A%20Sudoku%20puzzle%20for%20you&body=Here%27s%20a%20link%20to%20a%20Sudoku%20puzzle%3A%0A%0A' + encodedLink;
 
 	let copyText;
 
@@ -28,7 +28,7 @@
 		const shareData = {
 			url: link,
 			title: 'Sudoku',
-			text: 'Create & play Sudoku puzzles for free online on sudoku.jonasgeiler.com!'
+			text: 'Create & play Sudoku puzzles for free online!'
 		};
 
 		if ('share' in navigator) {
@@ -114,34 +114,44 @@
 
 <style>
 	.code-container {
-		@apply flex flex-col;
+		display: flex;
+		flex-direction: column;
 	}
 
 	.code-field {
-		@apply rounded-b-none font-mono text-center;
+		border-bottom-left-radius: 0;
+		border-bottom-right-radius: 0;
+		font-family: monospace;
+		text-align: center;
 	}
 
 	.btn-copy {
-		@apply p-3 rounded-t-none;
+		padding: 0.75rem;
+		border-top-left-radius: 0;
+		border-top-right-radius: 0;
 	}
 
-	@screen sm {
+	@media (min-width: 640px) {
 		.code-container {
-			@apply flex-row;
+			flex-direction: row;
 		}
 
 		.code-field {
-			@apply flex-grow rounded-bl-xl rounded-r-none;
+			flex-grow: 1;
+			border-bottom-left-radius: 0.75rem;
+			border-bottom-right-radius: 0;
 		}
 
 		.btn-copy {
-			@apply rounded-tr-xl rounded-l-none;
+			border-top-left-radius: 0;
+			border-top-right-radius: 0.75rem;
 		}
 	}
 
 
 	.btn-share {
-		@apply text-white border-none;
+		color: white;
+		border: none;
 	}
 
 	.btn-share-twitter {

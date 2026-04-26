@@ -17,35 +17,58 @@
 
 <style>
 	.switch {
-		@apply inline-block relative align-middle cursor-pointer select-none bg-transparent;
+		display: inline-block;
+		position: relative;
+		vertical-align: middle;
+		cursor: pointer;
+		user-select: none;
+		background-color: transparent;
 	}
 
 	.track {
-		@apply block w-12 h-6 bg-gray-600 rounded-full shadow-inner;
+		display: block;
+		width: 3rem;
+		height: 1.5rem;
+		background-color: #4b5563;
+		border-radius: 9999px;
+		box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
 	}
 
 	.thumb {
-		@apply block transition-all duration-300 ease-in-out absolute top-0 left-0 w-6 h-6 bg-white border-2 border-gray-600 rounded-full;
+		display: block;
+		transition: all 0.3s ease-in-out;
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 1.5rem;
+		height: 1.5rem;
+		background-color: white;
+		border: 2px solid #4b5563;
+		border-radius: 9999px;
 	}
 
 	input[type='checkbox']:checked ~ .thumb {
-		@apply transform translate-x-full border-primary;
+		transform: translateX(1.5rem);
+		border-color: #2979fa;
 	}
 
 	input[type='checkbox']:checked ~ .track {
-		@apply transform transition-colors bg-primary;
+		transition: background-color 0.3s;
+		background-color: #2979fa;
 	}
 
 	input[type='checkbox']:disabled ~ .track {
-		@apply bg-gray-500;
+		background-color: #9ca3af;
 	}
 
 	input[type='checkbox']:disabled ~ .thumb {
-		@apply bg-gray-100 border-gray-500;
+		background-color: #f3f4f6;
+		border-color: #9ca3af;
 	}
 
 	input[type='checkbox']:focus + .track,
 	input[type='checkbox']:active + .track {
-		@apply outline-none shadow-outline;
+		outline: none;
+		box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.5);
 	}
 </style>

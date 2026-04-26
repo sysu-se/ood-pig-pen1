@@ -1,10 +1,10 @@
 <script>
 	import { BOX_SIZE } from '@sudoku/constants';
-	import { gamePaused } from '@sudoku/stores/game';
-	import { grid, userGrid, invalidCells } from '@sudoku/stores/grid';
+	import { gamePaused } from '@sudoku/stores/gamePaused';
 	import { settings } from '@sudoku/stores/settings';
 	import { cursor } from '@sudoku/stores/cursor';
 	import { candidates } from '@sudoku/stores/candidates';
+	import { gameStore } from '@sudoku/stores/gameStore.js';
 	import Cell from './Cell.svelte';
 
 	function isSelected(cursorStore, x, y) {
@@ -35,9 +35,9 @@
 	</div>
 	<div class="board-padding absolute inset-0 flex justify-center">
 
-		<div class="bg-white shadow-2xl rounded-xl overflow-hidden w-full h-full max-w-xl grid" class:bg-gray-200={$gamePaused}>
+		<div class="bg-white shadow-2xl rounded-xl overflow-hidden w-full h-full max-w-xl board-grid" class:bg-gray-200={$gamePaused}>
 
-			{#each $userGrid as row, y}
+			{#each $gameStore.grid as row, y}
 				{#each row as value, x}
 					<Cell {value}
 					      cellY={y + 1}
@@ -45,10 +45,10 @@
 					      candidates={$candidates[x + ',' + y]}
 					      disabled={$gamePaused}
 					      selected={isSelected($cursor, x, y)}
-					      userNumber={$grid[y][x] === 0}
+					      userNumber={$gameStore.initialGrid[y][x] === 0}
 					      sameArea={$settings.highlightCells && !isSelected($cursor, x, y) && isSameArea($cursor, x, y)}
-					      sameNumber={$settings.highlightSame && value && !isSelected($cursor, x, y) && getValueAtCursor($userGrid, $cursor) === value}
-					      conflictingNumber={$settings.highlightConflicting && $grid[y][x] === 0 && $invalidCells.includes(x + ',' + y)} />
+					      sameNumber={$settings.highlightSame && value && !isSelected($cursor, x, y) && getValueAtCursor($gameStore.grid, $cursor) === value}
+					      conflictingNumber={$settings.highlightConflicting && $gameStore.initialGrid[y][x] === 0 && $gameStore.invalidCells.includes(x + ',' + y)} />
 				{/each}
 			{/each}
 
@@ -59,6 +59,16 @@
 
 <style>
 	.board-padding {
-		@apply px-4 pb-4;
+		padding-left: 1rem;
+		padding-right: 1rem;
+		padding-bottom: 1rem;
+	}
+
+	.board-grid {
+		display: grid;
+		grid-template-columns: repeat(9, 1fr);
+		grid-template-rows: repeat(9, 1fr);
+		width: 100%;
+		height: 100%;
 	}
 </style>

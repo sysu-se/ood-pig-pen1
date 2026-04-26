@@ -1,10 +1,10 @@
 <script>
 	import { DIFFICULTIES, DIFFICULTY_CUSTOM, GAME_OVER_CELEBRATIONS } from '@sudoku/constants';
-	import { resumeGame } from '@sudoku/game';
 	import { modal } from '@sudoku/stores/modal';
 	import { timer } from '@sudoku/stores/timer';
 	import { difficulty } from '@sudoku/stores/difficulty';
 	import { usedHints } from '@sudoku/stores/hints';
+	import { gamePaused } from '@sudoku/stores/gamePaused';
 
 	const gameOverCelebration = GAME_OVER_CELEBRATIONS[Math.floor(Math.random() * GAME_OVER_CELEBRATIONS.length)];
 
@@ -13,7 +13,11 @@
 	}
 
 	function handleNewGame() {
-		modal.show('welcome', { onHide: resumeGame });
+		modal.show('welcome', {
+			onHide: () => {
+				gamePaused.set(false);
+			}
+		});
 	}
 </script>
 
@@ -86,26 +90,37 @@
 
 <style>
 	.game-data {
-		@apply mt-6 mb-10 w-full text-xl;
+		margin-top: 1.5rem;
+		margin-bottom: 2.5rem;
+		width: 100%;
+		font-size: 1.25rem;
 	}
 
 	.game-data-item {
-		@apply flex;
+		display: flex;
 	}
 
 	.item-icon {
-		@apply flex-auto mr-3;
+		flex: 1 1 0%;
+		margin-right: 0.75rem;
 	}
 
 	.item-data {
-		@apply flex-grow w-full flex flex-wrap border-b-2 border-gray-300 pb-1;
+		flex-grow: 1;
+		width: 100%;
+		display: flex;
+		flex-wrap: wrap;
+		border-bottom: 2px solid #d1d5db;
+		padding-bottom: 0.25rem;
 	}
 
 	.item-data-label {
-		@apply w-1/2 text-left;
+		width: 50%;
+		text-align: left;
 	}
 
 	.item-data-value {
-		@apply w-1/2 text-right;
+		width: 50%;
+		text-align: right;
 	}
 </style>

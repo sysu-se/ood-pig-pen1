@@ -36,7 +36,7 @@
 		     class:same-number={sameNumber}
 		     class:conflicting-number={conflictingNumber}>
 
-			<button class="cell-btn" on:click={cursor.set(cellX - 1, cellY - 1)}>
+			<button class="cell-btn" on:click={() => cursor.set(cellX - 1, cellY - 1)}>
 				{#if candidates}
 					<Candidates {candidates} />
 				{:else}
@@ -51,72 +51,86 @@
 
 <style>
 	.cell {
-		@apply h-full w-full row-end-auto col-end-auto;
+		height: 100%;
+		width: 100%;
+		grid-row-end: auto;
+		grid-column-end: auto;
 	}
 
 	.cell-inner {
-		@apply relative h-full w-full text-gray-800;
+		position: relative;
+		height: 100%;
+		width: 100%;
+		color: #2d3748;
 	}
 
 	.cell-btn {
-		@apply absolute inset-0 h-full w-full;
+		position: absolute;
+		top: 0;
+		right: 0;
+		bottom: 0;
+		left: 0;
+		height: 100%;
+		width: 100%;
 	}
 
 	.cell-btn:focus {
-		@apply outline-none;
+		outline: none;
 	}
 
 	.cell-text {
-		@apply leading-full text-base;
+		line-height: 100%;
+		font-size: 1rem;
 	}
 
 	@media (min-width: 300px) {
 		.cell-text {
-			@apply text-lg;
+			font-size: 1.125rem;
 		}
 	}
 
 	@media (min-width: 350px) {
 		.cell-text {
-			@apply text-xl;
+			font-size: 1.25rem;
 		}
 	}
 
 	@media (min-width: 400px) {
 		.cell-text {
-			@apply text-2xl;
+			font-size: 1.5rem;
 		}
 	}
 
 	@media (min-width: 500px) {
 		.cell-text {
-			@apply text-3xl;
+			font-size: 1.875rem;
 		}
 	}
 
 	@media (min-width: 600px) {
 		.cell-text {
-			@apply text-4xl;
+			font-size: 2.25rem;
 		}
 	}
 
 	.user-number {
-		@apply text-primary;
+		color: #2979fa;
 	}
 
 	.selected {
-		@apply bg-primary text-white;
+		background-color: #2979fa;
+		color: white;
 	}
 
 	.same-area {
-		@apply bg-primary-lighter;
+		background-color: #f0f4ff;
 	}
 
 	.same-number {
-		@apply bg-primary-light;
+		background-color: #e0eaff;
 	}
 
 	.conflicting-number {
-		@apply text-red-600;
+		color: #dc2626;
 	}
 </style>

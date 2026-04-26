@@ -1,55 +1,59 @@
 <script>
-	import game from '@sudoku/game';
+	import { gameStore } from '@sudoku/stores/gameStore.js';
 	import { validateSencode } from '@sudoku/sencode';
 	import { modal } from '@sudoku/stores/modal';
 	import { slide, fade } from 'svelte/transition';
 	import { DIFFICULTIES, DROPDOWN_DURATION, DIFFICULTY_CUSTOM } from '@sudoku/constants';
 	import { difficulty } from '@sudoku/stores/difficulty';
+	import { gamePaused } from '@sudoku/stores/gamePaused';
 
 	let dropdownVisible = false;
 
 	function handleDifficulty(difficultyValue) {
 		dropdownVisible = false;
-		game.pause();
 
 		modal.show('confirm', {
 			title: 'New Game',
 			text: 'Start new game with difficulty "' + DIFFICULTIES[difficultyValue] + '"?',
 			button: 'Continue',
-			onHide: game.resume,
+			onHide: () => {
+				gamePaused.set(false);
+			},
 			callback: () => {
-				game.startNew(difficultyValue);
+				gameStore.startNew(difficultyValue);
 			},
 		});
 	}
 
 	function handleCreateOwn() {
 		dropdownVisible = false;
-		game.pause();
 
 		modal.show('confirm', {
 			title: 'Create Own',
 			text: 'Switch to the creator mode to create your own Sudoku puzzle?',
 			button: 'Continue',
-			onHide: game.resume,
+			onHide: () => {
+				gamePaused.set(false);
+			},
 			callback: () => {
-				//game.startCreatorMode();
+				// TODO: Implement creator mode
 			},
 		});
 	}
 
 	function handleEnterCode() {
 		dropdownVisible = false;
-		game.pause();
 
 		modal.show('prompt', {
 			title: 'Enter Code',
 			text: 'Please enter the code of the Sudoku puzzle you want to play:',
 			fontMono: true,
 			button: 'Start',
-			onHide: game.resume,
+			onHide: () => {
+				gamePaused.set(false);
+			},
 			callback: (value) => {
-				game.startCustom(value);
+				gameStore.startCustom(value);
 			},
 			validate: validateSencode
 		});
@@ -57,12 +61,16 @@
 
 	function showDropdown() {
 		dropdownVisible = true;
-		game.pause();
+		gamePaused.set(true);
 	}
 
 	function hideDropdown() {
 		dropdownVisible = false;
-		setTimeout(game.resume, DROPDOWN_DURATION);
+		setTimeout(() => {
+			if (dropdownVisible === false) {
+				gamePaused.set(false);
+			}
+		}, DROPDOWN_DURATION);
 	}
 </script>
 

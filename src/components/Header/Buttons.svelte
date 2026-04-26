@@ -1,15 +1,23 @@
 <script>
 	import { modal } from '@sudoku/stores/modal';
-	import { pauseGame, resumeGame } from '@sudoku/game';
+	import { gamePaused } from '@sudoku/stores/gamePaused';
 
 	function handleShareButton() {
-		pauseGame();
-		modal.show('share', { onHide: resumeGame });
+		gamePaused.set(true);
+		modal.show('share', {
+			onHide: () => {
+				gamePaused.set(false);
+			}
+		});
 	}
 
 	function handleSettingsButton() {
-		pauseGame();
-		modal.show('settings', { onHide: resumeGame });
+		gamePaused.set(true);
+		modal.show('settings', {
+			onHide: () => {
+				gamePaused.set(false);
+			}
+		});
 	}
 </script>
 
@@ -44,6 +52,6 @@
 	}
 
 	.btn-header:focus {
-		@apply shadow-outline-inverse;
+		box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5);
 	}
 </style>
