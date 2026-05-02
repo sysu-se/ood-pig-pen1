@@ -8,14 +8,17 @@ import Sudoku from './Sudoku.js'
 class Game {
     /**
      * 构造函数 - 创建一个新的游戏会话
-     * @param {Sudoku} sudoku - 一个 Sudoku 对象，作为初始局面
+     * @param {Object} options - 配置选项
+     * @param {Sudoku} options.sudoku - 一个 Sudoku 对象，作为初始局面
      */
-    constructor(sudoku) {
+    constructor(options = {}) {
+        const sudoku = options.sudoku || new Sudoku();
+        
         // 保存初始局面的副本（用于标记哪些格子是题目预设的）
         this.initialSudoku = sudoku.clone()
 
-        // 当前局面
-        this.sudoku = sudoku
+        // 当前局面（使用 clone 防止外部绕过 Game 修改）
+        this.sudoku = sudoku.clone()
 
         // history 数组：保存历史快照（用于 Undo）
         this.history = []
@@ -102,10 +105,6 @@ class Game {
             valueNum = value;
         }
 
-        console.log('Game.guess called:', { rowNum, colNum, valueNum });
-        console.log('isInitialCell:', this.isInitialCell(rowNum, colNum));
-        console.log('initialSudoku value:', this.initialSudoku.getGrid()[rowNum][colNum]);
-
         // 检查是否是初始题目格子
         if (this.isInitialCell(rowNum, colNum)) {
             console.error(`Cannot modify initial cell at (${rowNum}, ${colNum})`);
@@ -114,21 +113,26 @@ class Game {
 
         // 检查新值是否和当前值相同
         const currentValue = this.sudoku.getGrid()[rowNum][colNum];
-        console.log('currentValue:', currentValue);
         if (currentValue === valueNum) {
-            console.log('No change needed');
             return false; // 没有变化，不需要记录历史
         }
 
-        // 保存当前状态到历史记录
-        this.history.push(this.sudoku.clone());
-        this.redoHistory = []; // 清空 redo 历史
-
-        // 更新当前格子
+        // 先执行操作，获取操作结果
         const success = this.sudoku.guess({ row: rowNum, col: colNum, value: valueNum });
-        console.log('sudoku.guess result:', success);
+        
+        // 只有操作真正成功时才记录历史
+        if (!success) return false;
 
-        // 返回操作结果
+        // 根据是否在探索模式，选择正确的历史记录
+        if (this.isExploring) {
+            // 探索模式下记录到探索历史
+            this._recordExploreMove(this.sudoku.clone());
+        } else {
+            // 正常模式下记录到主历史
+            this.history.push(this.sudoku.clone());
+            this.redoHistory = []; // 清空 redo 历史
+        }
+
         return success;
     }
 
@@ -379,10 +383,10 @@ class Game {
 
     /**
      * 提交探索结果
-     * @returns {boolean} 成功返回 true，如果探索失败（有冲突）返回 false
+     * @returns {{success: boolean, reason?: string}} 成功返回 {success: true}，失败返回 {success: false, reason}
      */
     submitExplore() {
-        if (!this.isExploring) return false
+        if (!this.isExploring) return { success: false, reason: 'not_exploring' }
 
         // 检查探索结果是否有冲突
         if (this.sudoku.hasAnyConflict()) {
@@ -390,13 +394,13 @@ class Game {
             const stateKey = this._getStateKey()
             this.failedExplorations.add(stateKey)
 
-            return false
+            return { success: false, reason: 'conflict' }
         }
 
         // 检查是否完成
         if (!this.sudoku.isComplete()) {
             // 未完成，不能提交（用户需要继续填写或放弃探索）
-            return false
+            return { success: false, reason: 'incomplete' }
         }
 
         // 将探索历史合并到主历史
@@ -419,7 +423,7 @@ class Game {
         this.exploreMoveHistory = null
         this.exploreRedoHistory = null
 
-        return true
+        return { success: true }
     }
 
     /**
@@ -522,40 +526,6 @@ class Game {
         }
 
         return game
-    }
-
-    /**
-     * 开始探索模式
-     */
-    startExplore() {
-        if (this.isExploring) return;
-
-        // 保存当前状态快照
-        this.exploreHistorySnapshot = [...this.history];
-        this.exploreRedoSnapshot = [...this.redoHistory];
-        this.exploreStartSnapshot = this.sudoku.clone();
-
-        this.isExploring = true;
-    }
-
-    /**
-     * 结束探索模式
-     * @param {boolean} commit - 是否提交探索结果
-     */
-    endExplore(commit = false) {
-        if (!this.isExploring) return;
-
-        if (!commit) {
-            // 恢复探索前的状态
-            this.history = [...this.exploreHistorySnapshot];
-            this.redoHistory = [...this.exploreRedoSnapshot];
-            this.sudoku = this.exploreStartSnapshot;
-        }
-
-        this.isExploring = false;
-        this.exploreHistorySnapshot = null;
-        this.exploreRedoSnapshot = null;
-        this.exploreStartSnapshot = null;
     }
 }
 

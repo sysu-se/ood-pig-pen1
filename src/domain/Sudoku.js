@@ -91,8 +91,12 @@ class Sudoku {
      * @returns {number[]} 候选数数组，如 [1,2,3]
      */
     getCandidates(row, col) {
+        console.log('Sudoku.getCandidates ENTER', {row, col, cellValue: this.grid[row][col]});
         // 如果该位置已经有数字，返回空数组
-        if (this.grid[row][col] !== 0) return []
+        if (this.grid[row][col] !== 0) {
+            console.log('Sudoku.getCandidates: cell already filled, returning []');
+            return []
+        }
 
         // 1-9 的候选数
         const candidates = [1, 2, 3, 4, 5, 6, 7, 8, 9]
@@ -128,6 +132,7 @@ class Sudoku {
             }
         }
 
+        console.log('Sudoku.getCandidates RESULT', {row, col, candidates});
         return candidates
     }
 

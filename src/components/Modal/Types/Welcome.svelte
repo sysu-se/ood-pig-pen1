@@ -1,22 +1,32 @@
 <script>
-	import { gameStore } from '@sudoku/stores/gameStore.js';
+	import { difficulty } from '@sudoku/stores/difficulty';
+	import { startNew, startCustom } from '@sudoku/game';
 	import { validateSencode } from '@sudoku/sencode';
 	import { DIFFICULTIES } from '@sudoku/constants';
 
 	export let data = {};
 	export let hideModal;
 
-	let difficulty = 'easy';
+	let selectedDifficulty;
 	let sencode = data.sencode || '';
 
+	// 同步难度从 store
+	$: {
+		if ($difficulty && DIFFICULTIES.hasOwnProperty($difficulty)) {
+			selectedDifficulty = $difficulty;
+		} else {
+			selectedDifficulty = 'easy';
+		}
+	}
+
 	$: enteredSencode = sencode.trim().length !== 0;
-	$: buttonDisabled = enteredSencode ? !validateSencode(sencode) : !DIFFICULTIES.hasOwnProperty(difficulty);
+	$: buttonDisabled = enteredSencode ? !validateSencode(sencode) : !DIFFICULTIES.hasOwnProperty(selectedDifficulty);
 
 	function handleStart() {
 		if (validateSencode(sencode)) {
-			gameStore.startCustom(sencode);
+			startCustom(sencode);
 		} else {
-			gameStore.startNew(difficulty);
+			startNew(selectedDifficulty);
 		}
 
 		hideModal();
@@ -34,7 +44,7 @@
 <label for="difficulty" class="text-lg mb-3">To start a game, choose a difficulty:</label>
 
 <div class="inline-block relative mb-6">
-	<select id="difficulty" class="btn btn-small w-full appearance-none leading-normal" bind:value={difficulty} disabled={enteredSencode}>
+	<select id="difficulty" class="btn btn-small w-full appearance-none leading-normal" bind:value={selectedDifficulty} disabled={enteredSencode}>
 		{#each Object.entries(DIFFICULTIES) as [difficultyValue, difficultyLabel]}
 			<option value={difficultyValue}>{difficultyLabel}</option>
 		{/each}

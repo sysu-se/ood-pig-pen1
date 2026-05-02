@@ -30,7 +30,7 @@ export function createSudokuFromJSON(json) {
  * @returns {Game} 返回新创建的 Game 对象
  */
 export function createGame({ sudoku }) {
-    return new Game(sudoku)
+    return new Game({ sudoku })
 }
 
 /**

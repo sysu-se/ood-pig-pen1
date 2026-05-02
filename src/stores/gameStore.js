@@ -12,6 +12,7 @@ import { createSudoku, createGame } from '@sudoku/domain'
 import { generateSudoku, solveSudoku } from '@sudoku/sudoku'
 import { decodeSencode } from '@sudoku/sencode'
 import { SUDOKU_SIZE } from '@sudoku/constants'
+import { difficulty } from '@sudoku/stores/difficulty'
 
 /**
  * 创建游戏 Store
@@ -91,6 +92,7 @@ function createGameStore() {
         const generatedGrid = generateSudoku(difficulty)
         const sudoku = createSudoku(generatedGrid)
         game = createGame({ sudoku })
+        difficulty.set(difficulty)
         syncToStores()
     }
 
@@ -102,6 +104,7 @@ function createGameStore() {
         const decodedGrid = decodeSencode(sencode)
         const sudoku = createSudoku(decodedGrid)
         game = createGame({ sudoku })
+        difficulty.setCustom()
         syncToStores()
     }
 
@@ -150,14 +153,20 @@ function createGameStore() {
     }
 
     /**
-     * 候选提示：获取指定位置的候选数
-     * @param {Object} pos - { x, y }
-     * @returns {number[]}
-     */
-    function getCandidates(pos) {
-        if (!game) return []
-        return game.getCandidates(pos.y, pos.x)
-    }
+	 * 候选提示：获取指定位置的候选数
+	 * @param {Object} pos - { x, y }
+	 * @returns {number[]}
+	 */
+	function getCandidates(pos) {
+		console.log('gameStore.getCandidates ENTER', pos, 'game=', game);
+		if (!game) {
+			console.log('getCandidates: game is null');
+			return []
+		}
+		const result = game.getCandidates(pos.y, pos.x);
+		console.log('gameStore.getCandidates RESULT', result);
+		return result;
+	}
 
     /**
      * 下一步提示：获取所有推定数
@@ -337,9 +346,29 @@ function createGameStore() {
      */
     function submitExplore() {
         if (!game) return false
-        const success = game.submitExplore()
+        const result = game.submitExplore()
+        
+        // 显示反馈
+        if (result.success) {
+            // 成功提交，sync后反馈会由状态变化体现
+        } else {
+            // 显示失败原因
+            let message = ''
+            switch (result.reason) {
+                case 'incomplete':
+                    message = '数独尚未完成，请继续填写'
+                    break
+                case 'conflict':
+                    message = '存在冲突，无法提交探索结果'
+                    break
+                default:
+                    message = '无法提交探索结果'
+            }
+            console.warn(message)
+        }
+        
         syncToStores()
-        return success
+        return result.success
     }
 
     /**
@@ -349,27 +378,6 @@ function createGameStore() {
     function checkExploring() {
         if (!game) return false
         return game.isInExploreMode()
-    }
-
-    /**
-     * 开始探索模式
-     */
-    function startExplore() {
-        if (game) {
-            game.startExplore();
-            syncToStores();
-        }
-    }
-
-    /**
-     * 结束探索模式
-     * @param {boolean} commit - 是否提交探索结果
-     */
-    function endExplore(commit = false) {
-        if (game) {
-            game.endExplore(commit);
-            syncToStores();
-        }
     }
 
     // ===== 返回 Store 对象 =====
