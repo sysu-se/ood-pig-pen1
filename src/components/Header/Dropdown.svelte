@@ -20,6 +20,9 @@
 				gamePaused.set(false);
 			},
 			callback: () => {
+				// 直接更新 difficulty store
+				difficulty.set(difficultyValue);
+				// 然后开始新游戏
 				gameStore.startNew(difficultyValue);
 			},
 		});
@@ -88,13 +91,13 @@
 
 		<div transition:slide={{duration: DROPDOWN_DURATION}} class="dropdown-menu">
 			{#each Object.entries(DIFFICULTIES) as [difficultyValue, difficultyLabel]}
-				<a class="dropdown-item" on:click|preventDefault={() => handleDifficulty(difficultyValue)} href="/difficulty-{difficultyValue}" title="Set difficulty to '{difficultyLabel}'">
+				<button class="dropdown-item text-left w-full" on:click={() => handleDifficulty(difficultyValue)} title="Set difficulty to '{difficultyLabel}'">
 					<svg class="icon-solid" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
 						<path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
 					</svg>
 
 					<span class="align-middle">{difficultyLabel}</span>
-				</a>
+				</button>
 			{/each}
 
 			<hr class="my-1">

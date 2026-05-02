@@ -86,13 +86,16 @@ function createGameStore() {
 
     /**
      * 开始新游戏
-     * @param {string} difficulty - 难度
+     * @param {string} difficultyLevel - 难度
      */
-    function startNew(difficulty) {
-        const generatedGrid = generateSudoku(difficulty)
+    function startNew(difficultyLevel) {
+        console.log('[gameStore] startNew called with:', difficultyLevel);
+        const generatedGrid = generateSudoku(difficultyLevel)
         const sudoku = createSudoku(generatedGrid)
         game = createGame({ sudoku })
-        difficulty.set(difficulty)
+        console.log('[gameStore] setting difficulty to:', difficultyLevel);
+        difficulty.set(difficultyLevel)
+        console.log('[gameStore] difficulty set called');
         syncToStores()
     }
 
