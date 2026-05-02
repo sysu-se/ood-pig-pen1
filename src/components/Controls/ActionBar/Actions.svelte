@@ -15,6 +15,7 @@
 
 	/**
 	 * 候选提示 - 显示当前选中格子的候选数
+	 * 通过 domain 层的 Game.getCandidates() 获取候选数
 	 */
 	function handleCandidatesHint() {
 		if (!hasSelection) {
@@ -26,72 +27,28 @@
 		const row = $cursor.y;
 		const col = $cursor.x;
 
-		// 直接获取 game 和 sudoku 对象
 		const game = gameStore.getGame();
-		const sudoku = game.getSudoku();
-		
-		console.log('DEBUG handleCandidatesHint START', {row, col});
-		console.log('DEBUG sudoku.grid type:', typeof sudoku.grid, 'isArray:', Array.isArray(sudoku.grid));
-		console.log('DEBUG sudoku.grid[6]:', sudoku.grid[6]);
-		console.log('DEBUG sudoku.grid[6][1]:', sudoku.grid[6] ? sudoku.grid[6][1] : 'row6 undefined');
-		
-		// 手动计算候选数（不依赖 getCandidates）
-		const manualCandidates = [];
-		for (let n = 1; n <= 9; n++) {
-			manualCandidates.push(n);
+		if (!game) {
+			showFeedback('游戏未初始化');
+			return;
 		}
-		
-		// 排除行
-		for (let c = 0; c < 9; c++) {
-			const val = sudoku.grid[row][c];
-			console.log(`DEBUG row[${row}][${c}] =`, val);
-			if (val !== 0) {
-				const idx = manualCandidates.indexOf(val);
-				if (idx !== -1) manualCandidates.splice(idx, 1);
-			}
-		}
-		console.log('DEBUG after row check:', manualCandidates);
-		
-		// 排除列
-		for (let r = 0; r < 9; r++) {
-			const val = sudoku.grid[r][col];
-			console.log(`DEBUG col[${r}][${col}] =`, val);
-			if (val !== 0) {
-				const idx = manualCandidates.indexOf(val);
-				if (idx !== -1) manualCandidates.splice(idx, 1);
-			}
-		}
-		console.log('DEBUG after col check:', manualCandidates);
-		
-		// 排除宫
-		const boxStartRow = Math.floor(row / 3) * 3;
-		const boxStartCol = Math.floor(col / 3) * 3;
-		for (let r = boxStartRow; r < boxStartRow + 3; r++) {
-			for (let c = boxStartCol; c < boxStartCol + 3; c++) {
-				if (r === row && c === col) continue;
-				const val = sudoku.grid[r][c];
-				console.log(`DEBUG box[${r}][${c}] =`, val);
-				if (val !== 0) {
-					const idx = manualCandidates.indexOf(val);
-					if (idx !== -1) manualCandidates.splice(idx, 1);
-				}
-			}
-		}
-		console.log('DEBUG FINAL candidates:', manualCandidates);
-		
-		if (manualCandidates.length === 0) {
+
+		// 通过 domain 层获取候选数
+		const candidates = game.getCandidates(row, col);
+
+		if (candidates.length === 0) {
 			showFeedback('无候选数');
 			return;
 		}
 
-		showFeedback(`候选数: ${manualCandidates.join(', ')}`);
+		showFeedback(`候选数: ${candidates.join(', ')}`);
 	}
 
 	/**
-	 * 下一步提示 - 高亮显示推定数位置
+	 * 下一步提示 - 找出一个可以唯一确定的空格和数字
+	 * 根据作业要求：分析全盘后，找出已经可以唯一确定的那个空格和数字（推定数）
 	 */
 	function handleNextHint() {
-		// 获取 game 对象
 		const game = gameStore.getGame();
 		if (!game) {
 			showFeedback('游戏未初始化');
@@ -99,23 +56,17 @@
 		}
 
 		const nextHints = game.getNextHint();
-		
+
 		if (!Array.isArray(nextHints) || nextHints.length === 0) {
-			showFeedback('当前没有推定数可用');
+			showFeedback('当前没有可确定的下一步');
 			hintHighlightCells = [];
 			return;
 		}
 
-		// 高亮显示推定数位置
-		hintHighlightCells = nextHints.map(h => ({ row: h.row, col: h.col }));
-		
-		if (nextHints.length === 1) {
-			const h = nextHints[0];
-			showFeedback(`推定数: 位置(${h.row + 1}, ${h.col + 1}) 可以填 ${h.value}`);
-		} else {
-			const positions = nextHints.map(h => `(${h.row + 1},${h.col + 1})=${h.value}`).join(', ');
-			showFeedback(`找到 ${nextHints.length} 个推定数: ${positions}`);
-		}
+		// 只取第一个推定数
+		const nextHint = nextHints[0];
+		hintHighlightCells = [{ row: nextHint.row, col: nextHint.col }];
+		showFeedback(`下一步: 位置(${nextHint.row + 1}, ${nextHint.col + 1}) 填入 ${nextHint.value}`);
 	}
 
 	/**

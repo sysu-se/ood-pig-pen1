@@ -88,16 +88,17 @@ function createGameStore() {
      * 开始新游戏
      * @param {string} difficultyLevel - 难度
      */
-    function startNew(difficultyLevel) {
-        console.log('[gameStore] startNew called with:', difficultyLevel);
-        const generatedGrid = generateSudoku(difficultyLevel)
-        const sudoku = createSudoku(generatedGrid)
-        game = createGame({ sudoku })
-        console.log('[gameStore] setting difficulty to:', difficultyLevel);
-        difficulty.set(difficultyLevel)
-        console.log('[gameStore] difficulty set called');
-        syncToStores()
-    }
+	function startNew(difficultyLevel) {
+		console.log('[gameStore] startNew called with:', difficultyLevel);
+		const generatedGrid = generateSudoku(difficultyLevel)
+		const sudoku = createSudoku(generatedGrid)
+		game = createGame({ sudoku })
+		console.log('[gameStore] game after creation:', game);
+		console.log('[gameStore] setting difficulty to:', difficultyLevel);
+		difficulty.set(difficultyLevel)
+		console.log('[gameStore] difficulty set called');
+		syncToStores()
+	}
 
     /**
      * 开始自定义游戏

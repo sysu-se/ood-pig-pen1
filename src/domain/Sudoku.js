@@ -160,6 +160,8 @@ class Sudoku {
     getDeducibleMoves() {
         const moves = []
         const allCandidates = this.getAllCandidates()
+        
+        console.log('[getDeducibleMoves] allCandidates:', allCandidates);
 
         for (const { row, col, candidates } of allCandidates) {
             if (candidates.length === 1) {
@@ -171,6 +173,7 @@ class Sudoku {
             }
         }
 
+        console.log('[getDeducibleMoves] deducible moves:', moves);
         return moves
     }
 
@@ -318,7 +321,7 @@ class Sudoku {
      * 获取候选数状态（防御性拷贝）
      * @returns {Object} 候选数状态的深拷贝
      */
-    getCandidates() {
+    getCandidatesMap() {
         return JSON.parse(JSON.stringify(this.candidates || {}));
     }
 

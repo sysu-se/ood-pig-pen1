@@ -213,7 +213,10 @@ class Game {
      * @returns {Array<{row: number, col: number, value: number}>} 推定数数组
      */
     getNextHint() {
-        return this.sudoku.getDeducibleMoves()
+        console.log('[Game.getNextHint] ENTER');
+        const result = this.sudoku.getDeducibleMoves();
+        console.log('[Game.getNextHint] RESULT:', result);
+        return result;
     }
 
     /**
@@ -316,7 +319,7 @@ class Game {
     setCandidates(candidates) {
         this.history.push({
             sudoku: this.sudoku.clone(),
-            candidates: this.sudoku.getCandidates()
+            candidates: this.sudoku.getCandidatesMap()
         });
         this.redoHistory = [];
         this.sudoku.setCandidates(candidates);
@@ -328,7 +331,7 @@ class Game {
     clearCandidates() {
         this.history.push({
             sudoku: this.sudoku.clone(),
-            candidates: this.sudoku.getCandidates()
+            candidates: this.sudoku.getCandidatesMap()
         });
         this.redoHistory = [];
         this.sudoku.clearCandidates();
