@@ -117,15 +117,22 @@ class Game {
             return false; // 没有变化，不需要记录历史
         }
 
-        // 先执行操作，获取操作结果
+        // 正常模式下：先保存历史快照（修改前），再执行操作
+        // 探索模式下：暂存 clone，操作后记录到探索历史
+        let snapshotBefore = null
+        if (!this.isExploring) {
+            snapshotBefore = this.sudoku.clone()
+        }
+
+        // 执行操作
         const success = this.sudoku.guess({ row: rowNum, col: colNum, value: valueNum });
-        
+
         // 只有操作真正成功时才记录历史
         if (!success) return false;
 
         // 根据是否在探索模式，选择正确的历史记录
         if (this.isExploring) {
-            // 探索模式下记录到探索历史
+            // 探索模式下记录操作后的状态到探索历史
             this._recordExploreMove(this.sudoku.clone());
 
             // 实时检测冲突/死路，自动记录到 failedExplorations
@@ -134,8 +141,8 @@ class Game {
                 this.failedExplorations.add(stateKey);
             }
         } else {
-            // 正常模式下记录到主历史
-            this.history.push(this.sudoku.clone());
+            // 正常模式下：将操作前保存的快照推入主历史
+            this.history.push(snapshotBefore);
             this.redoHistory = []; // 清空 redo 历史
         }
 
@@ -589,7 +596,7 @@ class Game {
             throw new Error('Invalid game JSON: missing sudoku grid')
         }
 
-        const game = new Game(Sudoku.fromJSON(json.sudoku))
+        const game = new Game({ sudoku: Sudoku.fromJSON(json.sudoku) })
 
         if (json.initialSudoku && json.initialSudoku.grid) {
             game.initialSudoku = Sudoku.fromJSON(json.initialSudoku)
