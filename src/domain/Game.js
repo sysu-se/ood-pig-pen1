@@ -393,30 +393,28 @@ class Game {
 
         // 检查探索结果是否有冲突
         if (this.sudoku.hasAnyConflict()) {
-            // 记录失败的探索状态
             const stateKey = this._getStateKey()
             this.failedExplorations.add(stateKey)
-
             return { success: false, reason: 'conflict' }
+        }
+
+        // 检查是否有死路（空格无候选数）
+        if (this.sudoku.hasEmptyCandidate()) {
+            const stateKey = this._getStateKey()
+            this.failedExplorations.add(stateKey)
+            return { success: false, reason: 'empty_candidate' }
         }
 
         // 检查是否完成
         if (!this.sudoku.isComplete()) {
-            // 未完成，不能提交（用户需要继续填写或放弃探索）
             return { success: false, reason: 'incomplete' }
         }
 
-        // 将探索历史合并到主历史
-        // 探索开始前的主历史 + 探索过程中的所有操作 = 新的主历史
-        // 注意：exploreStartSnapshot 已经在 exploreMoveHistory 中作为第一条记录
-        // 我们需要用探索开始前的历史 + 探索移动历史
-
-        // 清空主历史，用探索开始前的历史加上探索历史
+        // 合并探索历史到主历史
+        // 将探索开始前的状态加入主历史（用于 Undo 回到探索前）
         this.history = [...this.exploreHistorySnapshot]
-
-        // 将探索开始前的状态作为历史的第一条（用于 Undo 回到探索前）
-        // 但实际上用户选择"提交"意味着用户认可了探索结果
-        // 所以探索前的状态不需要再作为历史记录了
+        this.history.push(this.exploreStartSnapshot)
+        this.redoHistory = []
 
         // 清空探索状态
         this.isExploring = false
@@ -427,6 +425,20 @@ class Game {
         this.exploreRedoHistory = null
 
         return { success: true }
+    }
+
+    /**
+     * 获取探索模式的冲突状态（供 UI 实时检测）
+     * @returns {{ conflict: boolean, emptyCandidate: boolean, knownFailed: boolean }}
+     */
+    getExploreConflictStatus() {
+        if (!this.isExploring) return { conflict: false, emptyCandidate: false, knownFailed: false }
+
+        return {
+            conflict: this.sudoku.hasAnyConflict(),
+            emptyCandidate: this.sudoku.hasEmptyCandidate(),
+            knownFailed: this.isCurrentStateKnownFailed()
+        }
     }
 
     /**

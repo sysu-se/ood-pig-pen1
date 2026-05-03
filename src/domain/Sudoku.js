@@ -285,6 +285,25 @@ class Sudoku {
     }
 
     /**
+     * 检查是否有空格的候选数为空（死路检测）
+     * 遍历所有空格，若任一空格没有任何候选数，则返回 true
+     * @returns {boolean}
+     */
+    hasEmptyCandidate() {
+        for (let row = 0; row < 9; row++) {
+            for (let col = 0; col < 9; col++) {
+                if (this.grid[row][col] === 0) {
+                    const candidates = this.getCandidates(row, col)
+                    if (candidates.length === 0) {
+                        return true
+                    }
+                }
+            }
+        }
+        return false
+    }
+
+    /**
      * 克隆当前数独局面
      * @returns {Sudoku} 返回一个新的 Sudoku 对象
      */

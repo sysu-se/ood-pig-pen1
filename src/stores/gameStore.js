@@ -349,30 +349,10 @@ function createGameStore() {
      * @returns {boolean}
      */
     function submitExplore() {
-        if (!game) return false
+        if (!game) return { success: false, reason: 'no_game' }
         const result = game.submitExplore()
-        
-        // 显示反馈
-        if (result.success) {
-            // 成功提交，sync后反馈会由状态变化体现
-        } else {
-            // 显示失败原因
-            let message = ''
-            switch (result.reason) {
-                case 'incomplete':
-                    message = '数独尚未完成，请继续填写'
-                    break
-                case 'conflict':
-                    message = '存在冲突，无法提交探索结果'
-                    break
-                default:
-                    message = '无法提交探索结果'
-            }
-            console.warn(message)
-        }
-        
         syncToStores()
-        return result.success
+        return result
     }
 
     /**
@@ -382,6 +362,15 @@ function createGameStore() {
     function checkExploring() {
         if (!game) return false
         return game.isInExploreMode()
+    }
+
+    /**
+     * 获取探索模式的冲突状态（供 UI 实时检测）
+     * @returns {{ conflict: boolean, emptyCandidate: boolean, knownFailed: boolean }}
+     */
+    function getExploreConflictStatus() {
+        if (!game) return { conflict: false, emptyCandidate: false, knownFailed: false }
+        return game.getExploreConflictStatus()
     }
 
     // ===== 返回 Store 对象 =====
@@ -422,6 +411,7 @@ function createGameStore() {
         exitExplore,
         submitExplore,
         checkExploring,
+        getExploreConflictStatus,
 
         // 辅助方法
         isInitialCell,

@@ -130,13 +130,38 @@
 	function handleExplore() {
 		hintHighlightCells = [];
 		if (isExploring) {
-			const success = gameStore.submitExplore();
-			if (!success) {
-				showFeedback('请先完成数独或点击X放弃探索');
+			const result = gameStore.submitExplore();
+			if (!result.success) {
+				let message = '';
+				switch (result.reason) {
+					case 'incomplete':
+						message = '数独尚未完成，请继续填写或点击X放弃探索';
+						break;
+					case 'conflict':
+						message = '⚠ 探索失败：棋盘存在冲突（行/列/宫有重复数字），无法提交';
+						break;
+					case 'empty_candidate':
+						message = '⚠ 探索失败：某个格子没有候选数了（死路），无法提交';
+						break;
+					case 'no_game':
+						message = '游戏未初始化';
+						break;
+					default:
+						message = '无法提交探索结果';
+				}
+				showFeedback(message);
+			} else {
+				showFeedback('探索结果已提交！');
 			}
 		} else {
 			gameStore.enterExplore();
-			showFeedback('探索模式：可自由尝试，完成后点击√提交，或点击X放弃');
+			// 进入探索模式后检查是否已是已知失败路径
+			const status = gameStore.getExploreConflictStatus();
+			if (status.knownFailed) {
+				showFeedback('探索模式：此路径之前已验证会冲突，建议点击X后选择其他候选数重新探索');
+			} else {
+				showFeedback('探索模式：可自由尝试，完成后点击√提交，或点击X放弃');
+			}
 		}
 	}
 
