@@ -8,10 +8,27 @@
 	let feedbackMessage = '';
 	let feedbackTimer = null;
 	let hintHighlightCells = []; // 高亮显示的格子
+	let lastFeedbackKey = ''; // 避免重复提示
 
 	$: hintsAvailable = $hints > 0;
 	$: isExploring = $gameStore.isExploring;
 	$: hasSelection = $cursor.x !== null && $cursor.y !== null;
+	// 实时检测探索模式下的冲突/死路/已知失败
+	$: if (isExploring) {
+		const key = `${$gameStore.exploringConflict}/${$gameStore.exploringEmptyCandidate}/${$gameStore.exploringFailed}`;
+		if (key !== lastFeedbackKey) {
+			lastFeedbackKey = key;
+			if ($gameStore.exploringConflict) {
+				showFeedback('⚠ 冲突：棋盘出现重复数字，此路不通！可点击X放弃探索');
+			} else if ($gameStore.exploringEmptyCandidate) {
+				showFeedback('⚠ 死路：某个格子无数字可填，此路不通！可点击X放弃探索');
+			} else if ($gameStore.exploringFailed) {
+				showFeedback('⚠ 已知失败：此盘面之前已验证走不通，建议点击X换条路');
+			}
+		}
+	} else {
+		lastFeedbackKey = '';
+	}
 
 	/**
 	 * 候选提示 - 显示当前选中格子的候选数
@@ -155,10 +172,13 @@
 			}
 		} else {
 			gameStore.enterExplore();
-			// 进入探索模式后检查是否已是已知失败路径
-			const status = gameStore.getExploreConflictStatus();
-			if (status.knownFailed) {
-				showFeedback('探索模式：此路径之前已验证会冲突，建议点击X后选择其他候选数重新探索');
+			// 进入探索模式后检查状态（响应式变量已自动更新）
+			if ($gameStore.exploringConflict) {
+				showFeedback('探索模式：当前局面已有冲突，建议点击X放弃后重新选择');
+			} else if ($gameStore.exploringEmptyCandidate) {
+				showFeedback('探索模式：当前局面已是死路，建议点击X放弃后重新选择');
+			} else if ($gameStore.exploringFailed) {
+				showFeedback('探索模式：此路径之前已验证会冲突，建议点击X后选择其他候选数');
 			} else {
 				showFeedback('探索模式：可自由尝试，完成后点击√提交，或点击X放弃');
 			}

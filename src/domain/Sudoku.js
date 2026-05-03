@@ -358,6 +358,52 @@ class Sudoku {
     clearCandidates() {
         this.candidates = {};
     }
+
+    /**
+     * 检测当前网格是否存在冲突
+     * @returns {boolean} 如果存在冲突返回 true，否则返回 false
+     */
+    checkConflict() {
+        const seen = new Set();
+
+        // 检查行和列
+        for (let i = 0; i < 9; i++) {
+            for (let j = 0; j < 9; j++) {
+                const rowValue = this.grid[i][j];
+                const colValue = this.grid[j][i];
+
+                if (rowValue !== 0) {
+                    const rowKey = `row-${i}-${rowValue}`;
+                    if (seen.has(rowKey)) return true;
+                    seen.add(rowKey);
+                }
+
+                if (colValue !== 0) {
+                    const colKey = `col-${i}-${colValue}`;
+                    if (seen.has(colKey)) return true;
+                    seen.add(colKey);
+                }
+            }
+        }
+
+        // 检查 3x3 宫格
+        for (let boxRow = 0; boxRow < 3; boxRow++) {
+            for (let boxCol = 0; boxCol < 3; boxCol++) {
+                for (let i = 0; i < 3; i++) {
+                    for (let j = 0; j < 3; j++) {
+                        const value = this.grid[boxRow * 3 + i][boxCol * 3 + j];
+                        if (value !== 0) {
+                            const boxKey = `box-${boxRow}-${boxCol}-${value}`;
+                            if (seen.has(boxKey)) return true;
+                            seen.add(boxKey);
+                        }
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
 }
 
 export default Sudoku

@@ -52,11 +52,17 @@ function createGameStore() {
     // exploringFailed: 当前探索状态是否已知失败
     const exploringFailed = writable(false)
 
+    // exploringConflict: 当前棋盘是否有冲突（实时检测）
+    const exploringConflict = writable(false)
+
+    // exploringEmptyCandidate: 当前棋盘是否有死路（实时检测）
+    const exploringEmptyCandidate = writable(false)
+
     // ===== 派生 Stores（从多个 stores 派生）=====
     
     const state = derived(
-        [grid, initialGrid, invalidCells, won, canUndo, canRedo, isExploring, exploringFailed],
-        ([$grid, $initialGrid, $invalidCells, $won, $canUndo, $canRedo, $isExploring, $exploringFailed]) => ({
+        [grid, initialGrid, invalidCells, won, canUndo, canRedo, isExploring, exploringFailed, exploringConflict, exploringEmptyCandidate],
+        ([$grid, $initialGrid, $invalidCells, $won, $canUndo, $canRedo, $isExploring, $exploringFailed, $exploringConflict, $exploringEmptyCandidate]) => ({
             grid: $grid,
             initialGrid: $initialGrid,
             invalidCells: $invalidCells,
@@ -64,7 +70,9 @@ function createGameStore() {
             canUndo: $canUndo,
             canRedo: $canRedo,
             isExploring: $isExploring,
-            exploringFailed: $exploringFailed
+            exploringFailed: $exploringFailed,
+            exploringConflict: $exploringConflict,
+            exploringEmptyCandidate: $exploringEmptyCandidate
         })
     )
 
@@ -80,6 +88,15 @@ function createGameStore() {
         canRedo.set(game.canRedo())
         isExploring.set(game.isInExploreMode())
         exploringFailed.set(game.isCurrentStateKnownFailed())
+
+        // 实时同步探索模式的冲突/死路状态
+        if (game.isInExploreMode()) {
+            exploringConflict.set(game.getSudoku().hasAnyConflict())
+            exploringEmptyCandidate.set(game.getSudoku().hasEmptyCandidate())
+        } else {
+            exploringConflict.set(false)
+            exploringEmptyCandidate.set(false)
+        }
     }
 
     // ===== 公开方法（UI 可调用）=====
@@ -388,6 +405,8 @@ function createGameStore() {
         canRedo,
         isExploring,
         exploringFailed,
+        exploringConflict,
+        exploringEmptyCandidate,
 
         // 派生状态
         state,

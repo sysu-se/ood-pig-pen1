@@ -127,6 +127,12 @@ class Game {
         if (this.isExploring) {
             // 探索模式下记录到探索历史
             this._recordExploreMove(this.sudoku.clone());
+
+            // 实时检测冲突/死路，自动记录到 failedExplorations
+            if (this.sudoku.hasAnyConflict() || this.sudoku.hasEmptyCandidate()) {
+                const stateKey = this._getStateKey();
+                this.failedExplorations.add(stateKey);
+            }
         } else {
             // 正常模式下记录到主历史
             this.history.push(this.sudoku.clone());
@@ -382,6 +388,55 @@ class Game {
         this.exploreRedoHistory = null
 
         return true
+    }
+
+    /**
+     * 开始探索模式
+     */
+    startExploration() {
+        if (this.isExploring) {
+            throw new Error('Already in exploration mode');
+        }
+
+        this.isExploring = true;
+        this.exploreHistorySnapshot = [...this.history];
+        this.exploreRedoSnapshot = [...this.redoHistory];
+        this.exploreStartSnapshot = this.sudoku.clone();
+    }
+
+    /**
+     * 结束探索模式，恢复到探索前的状态
+     */
+    endExploration() {
+        if (!this.isExploring) {
+            throw new Error('Not in exploration mode');
+        }
+
+        this.isExploring = false;
+        this.history = [...this.exploreHistorySnapshot];
+        this.redoHistory = [...this.exploreRedoSnapshot];
+        this.sudoku = this.exploreStartSnapshot.clone();
+
+        this.exploreHistorySnapshot = null;
+        this.exploreRedoSnapshot = null;
+        this.exploreStartSnapshot = null;
+    }
+
+    /**
+     * 记录探索失败的盘面
+     */
+    recordFailedExploration() {
+        const snapshotKey = JSON.stringify(this.sudoku.grid);
+        this.failedExplorations.add(snapshotKey);
+    }
+
+    /**
+     * 检查当前盘面是否已记录为失败
+     * @returns {boolean} 如果当前盘面已失败，返回 true
+     */
+    isFailedExploration() {
+        const snapshotKey = JSON.stringify(this.sudoku.grid);
+        return this.failedExplorations.has(snapshotKey);
     }
 
     /**
